@@ -7,25 +7,25 @@ WORK_DIR="/home/user/tdk_ws"
 USERNAME=user # make sure this is same as dockerfile
 
 # Ensure X11 permissions
-echo "Setting X11 permissions..."
-xhost +local:docker || {
-    echo "Error: Failed to set xhost permissions."
-    exit 1
-}
+# echo "Setting X11 permissions..."
+# xhost +local:docker || {
+#     echo "Error: Failed to set xhost permissions."
+#     exit 1
+# }
 
 # set XAUTH_FILE to the path on host
-XAUTH_FILE=$XAUTHORITY
+# XAUTH_FILE=$XAUTHORITY
 
 # Check if XAUTH_FILE exists
-if [ ! -f "$XAUTH_FILE" ]; then
-    echo "(You should check the XAUTHORITY path."
-    echo "Generating .Xauthority..."
-    xauth generate "$DISPLAY" . || {
-        echo "Error: Failed to generate .Xauthority."
-        exit 1
-    }
-    XAUTH_FILE="$HOME/.Xauthority"
-fi
+# if [ ! -f "$XAUTH_FILE" ]; then
+#     echo "(You should check the XAUTHORITY path."
+#     echo "Generating .Xauthority..."
+#     xauth generate "$DISPLAY" . || {
+#         echo "Error: Failed to generate .Xauthority."
+#         exit 1
+#     }
+#     XAUTH_FILE="$HOME/.Xauthority"
+# fi
 
 # Build the Docker image
 echo "Building the Docker image..."
@@ -43,13 +43,9 @@ docker run -d \
     --name "$CONTAINER_NAME" \
     --privileged \
     --network host \
-    -e DISPLAY="$DISPLAY" \
     -e ROS_WS="$WORK_DIR" \
     -v /etc/timezone:/etc/timezone:ro \
     -v /etc/localtime:/etc/localtime:ro \
-    -v "$HOME/.Xauthority:/root/.Xauthority:ro" \
-    -e XAUTHORITY="/root/.Xauthority" \
-    -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
     -v /dev:/dev \
     -v "$(realpath ..):$WORK_DIR" \
     -it \
@@ -60,6 +56,10 @@ docker run -d \
         exit 1
     }
 
+    # -e DISPLAY="$DISPLAY" \
+    # -v "$HOME/.Xauthority:/root/.Xauthority:ro" \
+    # -e XAUTHORITY="/root/.Xauthority" \
+    # -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 # Wait briefly to ensure the container is up
 sleep 2
 
