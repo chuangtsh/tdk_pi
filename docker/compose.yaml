@@ -1,0 +1,78 @@
+version: '3'
+name: 'tdkkesler'
+
+services:
+  ros-core:
+    image: arm64v8/ros:noetic-ros-base  # ARM64 specific image
+    platform: linux/arm64
+    container_name: ros-core
+    command: "rosmaster --core"
+    network_mode: host
+    stop_grace_period: 1s
+    healthcheck:
+      test: /ros_entrypoint.sh bash -c "rostopic list || exit 1"
+      interval: 3s
+      timeout: 10s
+      retries: 5
+
+  ros1-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: release
+      platforms:
+        - linux/arm64
+      args:
+        USERNAME: user
+    image: kesler/tdk:communication-arm64
+    platform: linux/arm64
+    container_name: ros2-ros1-bridge
+    stop_grace_period: 1s
+    depends_on:
+      ros-core:
+        condition: service_healthy
+    command: ./start-bridge.sh
+    stdin_open: true
+    tty: true
+    privileged: true
+    network_mode: host
+    working_dir: /
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /dev:/dev
+      - /dev/dri:/dev/dri
+      - /dev/shm:/dev/shm
+
+  ros1:
+    image: arm64v8/ros:noetic-ros-base  # ARM64 specific image
+    platform: linux/arm64
+    container_name: ros1
+    stdin_open: true
+    tty: true
+    network_mode: host
+    privileged: true
+    volumes:
+      - ../comm-ws:/root/comm-ws
+      - /dev/bus/usb:/dev/bus/usb
+    stop_grace_period: 1s
+    depends_on:
+      ros-core:
+        condition: service_healthy
+    command: /bin/bash -c "
+            source /opt/ros/noetic/setup.bash && 
+            source /root/comm-ws/devel/setup.bash && 
+            cd /root/comm-ws &&
+            roslaunch rosserial_server stm32.launch"
+            # sudo chmod 777 /dev/ttyUSB0 &&
+
+  ros2:
+    image: arm64v8/ros:humble-ros-base  # ARM64 specific image  
+    platform: linux/arm64
+    container_name: ros2
+    stdin_open: true
+    tty: true
+    network_mode: host
+    stop_grace_period: 1s
+    volumes:
+      - /dev:/dev
