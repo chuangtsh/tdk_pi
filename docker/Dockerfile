@@ -39,13 +39,13 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
         ros-noetic-std-msgs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ROS 2 Humble (excellent ARM64 support)
+# Install ROS 2 Foxy (compatible with Ubuntu 20.04)
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros2-latest.list \
     && apt-get update \
     && apt-get install -y \
-        ros-humble-ros-base \
-        ros-humble-ros1-bridge \
+        ros-foxy-ros-base \
+        ros-foxy-ros1-bridge \
         python3-colcon-common-extensions \
         python3-rosdep \
     && rm -rf /var/lib/apt/lists/*
@@ -68,7 +68,7 @@ RUN chmod +x /start-bridge.sh
 # Switch to user and setup environment
 USER $USERNAME
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc \
-    && echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+    && echo "source /opt/ros/foxy/setup.bash" >> ~/.bashrc
 
 WORKDIR /
 CMD ["./start-bridge.sh"]

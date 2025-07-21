@@ -1,4 +1,3 @@
-version: '3'
 name: 'tdkkesler'
 
 services:
@@ -59,12 +58,21 @@ services:
     depends_on:
       ros-core:
         condition: service_healthy
-    command: /bin/bash -c "
-            source /opt/ros/noetic/setup.bash && 
-            source /root/comm-ws/devel/setup.bash && 
-            cd /root/comm-ws &&
-            roslaunch rosserial_server stm32.launch"
-            # sudo chmod 777 /dev/ttyUSB0 &&
+    command: >
+      /bin/bash -c "
+      source /opt/ros/noetic/setup.bash && 
+      source /root/comm-ws/devel/setup.bash && 
+      cd /root/comm-ws &&
+      echo 'Waiting for TTY device...' &&
+      while [ ! -e /dev/ttyUSB0 ]; do
+        echo 'TTY device /dev/ttyUSB0 not found, waiting...'
+        sleep 2
+      done &&
+      echo 'TTY device found, setting permissions...' &&
+      sudo chmod 777 /dev/ttyUSB0 &&
+      echo 'Launching rosserial server...' &&
+      roslaunch rosserial_server stm32.launch
+      "
 
   ros2:
     image: arm64v8/ros:humble-ros-base  # ARM64 specific image  
